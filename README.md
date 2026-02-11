@@ -41,7 +41,43 @@ Participants must have access to a computer with a Mac, Linux, or Windows operat
 
 ## What do you need to do before joining the workshop?
 
-### 1. Clone this repository
+
+### 1. Install Nextflow
+
+The installation process may take some time. Please plan accordingly. 
+
+Installation instructions depend on your operating system:
+
+- **Unix or macOS users**:
+  Follow the instructions available here:
+  [https://www.nextflow.io/docs/latest/install.html](https://www.nextflow.io/docs/latest/install.html)
+
+  Make sure to install Java before installing Nextflow.
+  When installing Nextflow, I recommend using the **self-install** method.
+  
+  Don't forget to check that the Nextflow has been correctly installed using the following command:
+
+  ```
+  nextflow info
+  ```
+
+- **Windows (10 or 11) users**:
+  You will need to install Nextflow via *Windows Subsystem for Linux (WSL)*. To this end, I have created a dedicated installation guide, available [here](window_install.md)
+  This guide is a simplified version of the instructions provided by the Nextflow developers at Seqera. Their full, detailed documentation is available at::
+  [https://seqera.io/blog/setup-nextflow-on-windows/](https://seqera.io/blog/setup-nextflow-on-windows/)
+  If you choose to follow this document, you do not need to install all the software listed there for the workshop, but only the components outlined in the high-level steps below:
+  	1. Install Windows PowerShell
+	2. Configure the Windows Subsystem for Linux (WSL2)
+	3. Obtain and Install a Linux distribution (on WSL2). 
+	
+		**Important**: the last command should be `sudo apt install net-tools git build-essential autoconf automake libtool`. 
+		This will also install Git and a few additional tools that may be useful during the workshop.
+  	4. Installing Nextflow (up to and including step 4)
+
+
+**If you get stuck, please contact me at alessia.visconti@gmail.com to get assistance before the workshop starts.**
+
+### 2. Clone this repository
 
 You need to clone this repository to a location you can access on your laptop. 
 To do so, run the following command:
@@ -50,28 +86,8 @@ To do so, run the following command:
 git clone https://github.com/alesssia/Nextflow_workshop.git
 ```
 
-### 2. Install Nextflow
+**Windows users**: This should be done *via* the Bash prompt. To access it, reopen the Windows Start Menu. In the search bar, type `Ubuntu`. Select `Ubuntu 22.04.06 LTS` or `Ubuntu 24.04.01 LTS`.
 
-Installation instructions depend on your operating system.
-
-- **Unix or macOS users**:
-  Follow the instructions available here:
-  [https://www.nextflow.io/docs/latest/install.html](https://www.nextflow.io/docs/latest/install.html)
-
-  Make sure to install Java before installing Nextflow.
-  When installing Nextflow, I recommend using the **self-install** method.
-  Don't forget to check that the Nexflow has been correctly installed using the following command:
-  
-  ```
-  nextflow info
-  ```
-
-- **Windows (10 or 11) users**:
-  You will need to install Nextflow via *Windows Subsystem for Linux (WSL)*.
-  Detailed instructions are available here:
-  [https://seqera.io/blog/setup-nextflow-on-windows/](https://seqera.io/blog/setup-nextflow-on-windows/)
-
-  I’ve also provided a simplified version of these steps [here](FICME).
 
 ### 3. Read/watch the preparatory material
 
@@ -107,4 +123,4 @@ The material included is this repository is developed and maintained by Alessia 
 
 ## Special thanks:
 
-- [Seqera](https://seqera.io/), for developing the [Hello Mextflow training](https://training.nextflow.io/latest/hello_nextflow/) course. I've drawn on their material for this workshop!
+- [Seqera](https://seqera.io/), for developing the [Hello Nextflow training](https://training.nextflow.io/latest/hello_nextflow/) course. I've drawn on their material for this workshop!

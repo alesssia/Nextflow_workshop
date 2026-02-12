@@ -29,7 +29,7 @@ For all these reasons (complexity, scalability, portability, and reproducibility
 
 ## What is a workflow manager?
 
-Workflow Management Systems, such as [Snakemake](https://snakemake.github.io/), [Galaxy](https://usegalaxy.org/), and [Nextflo2](https://nextflow.io/), are tools designed to help design, develop, and manage even very complex data analysis workflows. They are widely used in bioinformatics, but  have also been applied in imaging, physics, chemistry and many other scientific disciplines.
+Workflow Management Systems, such as [Snakemake](https://snakemake.github.io/), [Galaxy](https://usegalaxy.org/), and [Nextflow](https://nextflow.io/), are tools designed to help design, develop, and manage even very complex data analysis workflows. They are widely used in bioinformatics, but  have also been applied in imaging, physics, chemistry and many other scientific disciplines.
 
 Key features of Workflow Management Systems are
 
@@ -58,7 +58,7 @@ So, what are the key features that make Nextflow so powerful?
 
 - **Fast prototyping,** Despite Nextflow has a relatively steep learning curve and sometimes a complex, not-always-intuitive syntax, it allows you to rapidly build workflows without getting involved in low-level programming details. Moreover, Nextflow makes it easy to reuse existing scripts and tools (module), enabling the developing and testing of new workflows quickly. 
 
-- **Reproducibility and container support.** Nextflow ensures that workflows are fully reproducible. It supports container technologies, such as Docker and Singularity, as well as the package manager Conda, to manage software dependencies. Additionally, Nextflow automatically tracks all inputs, outputs, parameters, and software versions.  Combined with GitHub integration for version control, this allows you to create self-contained pipelines that can be run again later (on your own computer, a collaborator’s machine, an HPC cluster, or a cloud platform) and produce exactly the same results. This is q cornerstone of scientific collaboration and open science.
+- **Reproducibility and container support.** Nextflow ensures that workflows are fully reproducible. It supports container technologies, such as Docker and Singularity, as well as the package manager Conda, to manage software dependencies. Additionally, Nextflow automatically tracks all inputs, outputs, parameters, and software versions.  Combined with GitHub integration for version control, this allows you to create self-contained pipelines that can be run again later (on your own computer, a collaborator’s machine, an HPC cluster, or a cloud platform) and produce exactly the same results. This is a cornerstone of scientific collaboration and open science.
 
 - **Portability and interoperability.** Nextflow separates the workflow logic (the steps of the analysis) from the execution environment (how and where it runs). This means the same pipeline can run on a laptop, an HPC cluster, or a cloud service without modifying the workflow itself. One Nextflow limitation is its intrinsic reliance on POSIX-compatible systems, such as Linux and macOS. This makes using Nextflow on Windows more cumbersome, as you may have noticed when installing it via WSL 2. However, keep in mind that most bioinformatics software is developed and tested only on POSIX systems, so this isn’t really Nextflow’s fault.
 

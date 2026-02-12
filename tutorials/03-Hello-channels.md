@@ -1,21 +1,20 @@
-# Hello channels!
+# Chapter 3: Hello channels!
 
 
-We’ll continue modifying our `hello-process.nf` file. However, if at any point you got lost, you can refer to the script `hello-channel.nf`, also located in the `template` folder, which contains all the edits we’ve made so far.
+We’ll continue modifying our `hello-process.nf` file. However, if at any point you got lost, you can refer to the script `hello-channel.nf`, also located in the `pipelines` folder, which contains all the edits we’ve made so far.
 
-If—and only if—you got lost, run the following command:
+If and only if you got lost, run the following command:
 
 ```
-mv pipelines/hello-channel.nf pipelines/hello-process.nf
+mv pipelines/hello-channels.nf pipelines/hello-process.nf
 ```
 
 This will overwrite your current file with the version we’ve built up to this point.
 Alright, let’s continue. Open the file with:
 
 ```
-nano hello-process.nf
+nano pipelines/hello-process.nf
 ```
-
 
 Here, we are already using one NF channel created with the `fromPath` command. NF offers multiple commands for creating channels, called *channel factories* in NF lingo.
 
@@ -29,50 +28,53 @@ workflow {
 	
    countSequences(input_ch)
 }
-
 ``` 
 
-Now save and close the file, then run the workflow:
+`*` is a wildcard that matches any file within `data` that with extension `fasta.gz`.
+
+
+Now save and close the file, then re-run the workflow:
 
 
 ```
-run pipelines/hello-process.nf
+nextflow run pipelines/hello-process.nf
 ```
 
+Now NF runs three tasks (`[100%] 3 of 3 ✔`). 
 
-You should now see that NF runs three tasks (`[100%] 3 of 3 ✔`). Before looking at the results, let’s pause to introduce a few more concepts that will be useful when developing your pipeline.
+Before looking at the results, let’s pause one moment.
 
 I mentioned earlier that each NF task has its own hash, but here we see three tasks and only one hash. What happened?
 
 NF overwrites the hash each time a new process is started. To see all the hashes generated during a run, we can use the following command-line parameter:
 
-
 ```
 nextflow run pipelines/hello-process.nf -ansi-log false
 ```
+
+now the output is different, and the three hashes for the three processes are shown:
 
 ```
 [da/be5b31] Submitted process > countSequences (1)
 [b5/b366f6] Submitted process > countSequences (2)
 [14/b1afb1] Submitted process > countSequences (3)
 ```
+This can be very useful for debugging, as it allows you to identify which task failed and inspect the corresponding work directory.
+
+Let’s now unpack what happened here. With a simple edit (adding a wildcard), NF understood that:
+
+- it needed to process multiple FASTA files;
+- it had to initiate a separate process for each file;
+- each process could run in parallel.
+
+This is just one example of the magic NF provides: transparent, automatic parallelisation across multiple samples.
 
 
-ow the output is different, and the three hashes for the three processes are shown. This can be very useful for debugging, as it allows you to identify which task failed and inspect the corresponding work directory.
-
-Let’s take a moment to unpack what happened here. With a simple edit (adding a wildcard), Nextflow understood that:
-
-- it needed to process multiple files
-- it had to initiate a separate process for each file
-- each process could run in parallel
-
-This is just one example of the magic Nextflow provides: transparent, automatic parallelization across multiple samples.
-
-Nextflow channels are designed to let us operate on their contents using operators. Let’s start with a simple one called `view()`. It allows you to inspect the contents of a channel.
+NF channels are designed to let us operate on their contents using operators. Let’s start with a simple one called `view()`. It allows you to inspect the contents of a channel.
 
 
 ```
-nano hello-process.nf
+nano pipelines/hello-process.nf
 ```
 
 ```
@@ -88,12 +90,12 @@ workflow {
 
 
 ```
-run pipelines/hello-process.nf
+nextflow run pipelines/hello-process.nf
 ```
 
 Using `view()`, NF prints the contents of a channel to the console. Again, this is very useful for debugging.
 
-Let me stress one important peculiarity of Nextflow. As we’ve seen, Nextflow takes care of parallelization, but it does not process files in the order in which they are provided. In this example, we will expect `Frank`, `Hari`, and `JackRabbit`, but Nextflow may process them in any order.
+Let me stress one important peculiarity of NF. As we’ve seen, NF takes care of parallelisation, but it does not process files in the order in which they are provided. In this example, we will expect `Frank`, `Hari`, and `JackRabbit`, but NF may process them in any order.
 Never rely on the input order being preserved.
 
 Now let’s go back and check the results of the execution. What do we expect?
@@ -109,10 +111,10 @@ So how do we make the filenames unique? A common approach is to include some uni
 
 To do this, we first need to extract the phage name from the input path.
 
-NF provides a very useful operator for this: `.map()`.
+NF provides a very useful operator for this: `map()`.
 
 ```
-nano hello-process.nf
+nano pipelines/hello-process.nf
 ```
 
 ```
@@ -133,19 +135,18 @@ We define a temporary variable for the value being processed—here we call it `
 The `simpleName` property returns the filename without the extension, while `name` returns the filename with the extension.
 
 At this point, the workflow will not run correctly: we still need to fix a few things. 
-For now, comment out the call to the process and just explore the result of the `map`.
+For now, comment out the call to the process, so we can explore the output of `map()`.
 
 Save the file, exit, and execute.
 
+```
+nextflow run pipelines/hello-process.nf
+```
 
 ```
-run pipelines/hello-process.nf
-```
-
-```
-[JackRabbit, /Users/visconti/Documents/Teaching/undergrads/Nextflow/data/JackRabbit.fasta.gz]
-[Frank, /Users/visconti/Documents/Teaching/undergrads/Nextflow/data/Frank.fasta.gz]
-[Hari, /Users/visconti/Documents/Teaching/undergrads/Nextflow/data/Hari.fasta.gz]
+[JackRabbit, /Users/visconti/Documents/Teaching/undergrads/NF/data/JackRabbit.fasta.gz]
+[Frank, /Users/visconti/Documents/Teaching/undergrads/NF/data/Frank.fasta.gz]
+[Hari, /Users/visconti/Documents/Teaching/undergrads/NF/data/Hari.fasta.gz]
 ````
 
 This may look like a double input, but it’s actually a single one (note the square brackets). 
@@ -166,7 +167,7 @@ We can then use these values inside the script:
  """
 ```
 
-Note that I’m not escaping the dollar sign for `simpleName` because it is a Nextflow variable. I’m enclosing it in curly brackets because Bash interpolation can be tricky, and using curly brackets is safer and more explicit.
+Note that I’m not escaping the dollar sign for `simpleName` because it is a NF variable. I’m enclosing it in curly brackets because Bash interpolation can be tricky, and using curly brackets is safer and more explicit.
 
 Let’s also update the output definition.
 
@@ -175,9 +176,9 @@ output:
 	path "total_sequences_${simpleName}.txt"  
 ```
 
-Note that I switched from single quotes to double quotes. This is one of those Nextflow interpolation quirks. You’ll learn all these quirks the hard way as you keep using Nextflow! It can have a steep learning curve!
+Note that I switched from single quotes to double quotes. This is one of those NF interpolation quirks. You’ll learn all these quirks the hard way as you keep using NF! It can have a steep learning curve!
 
-Before saving, uncomment the process call in the workflow (`countSequences(input_ch)`). We can also clean up the `view` statements now that the mechanism is clear, and finally uncomment the call to the process.
+Before saving, uncomment the process call in the workflow (`countSequences(input_ch)`). We can also clean up the `view()` operator now that the mechanism is clear.
 
 ```
 workflow {
@@ -205,21 +206,9 @@ Sure enough, our three files are here! Let’s take a look at their contents:
 cat results/total_sequences_*.txt
 ```
 
-We’ve now had a first taste of Nextflow channels and operators. Nextflow offers many operators that can perform both strange and useful tasks, but their behaviour can sometimes be tricky to follow. If you ever feel lost, don’t hesitate to consult the Nextflow documentation: it’s one of the best out there. 
+We’ve now had a first taste of NF channels and operators. NF offers many operators that can perform both strange and useful tasks, but their behaviour can sometimes be tricky to follow. If you ever feel lost, don’t hesitate to consult the NF documentation: it’s one of the best out there. 
 
 Also, feel free to abuse the `.view()` operator to inspect what’s happening inside your workflow!
 
-Now, let’s move on to the third chapter: **Hello, workflow!**
-
-
-
-
-
-
-
-
-
-
-
-
+Now, let’s move on to the fourth chapter: Hello, workflow!
 

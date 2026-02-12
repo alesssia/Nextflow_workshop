@@ -79,20 +79,35 @@ Installation instructions depend on your operating system:
 
 ### 2. Clone this repository
 
-You need to clone this repository to a location you can access on your laptop. 
-To do so, run the following command:
+- You need to clone this repository to a location you can access on your laptop. 
+  To do so, run the following command:
 
-```
-git clone https://github.com/alesssia/Nextflow_workshop.git
-```
+	```
+	git clone https://github.com/alesssia/Nextflow_workshop.git
+	```
+
+- Access the cloned repository using the `cd` bash command, and print its location using the `pwd` bash command:
+
+	```
+	cd Nextflow_workshop
+	pwd
+	```
+	
+	Expected output should resemble the following:
+	
+	```
+	/Users/visconti/Documents/Teaching/Nextflow_workshop
+	```
+
+-  Please write down this path and keep it in a safe place: we will need it during the workshop.
 
 **Windows users**: This should be done *via* the Bash prompt. To access it, reopen the Windows Start Menu. In the search bar, type `Ubuntu`. Select `Ubuntu 22.04.06 LTS` or `Ubuntu 24.04.01 LTS`.
 
 
-### 3. Read/watch the preparatory material
+### 3. Read the preparatory material
 
-- TBA on generic workflow orchestration manager
-- TBA on NF
+- I've prepared a short introduction to workflow orchestration managers and Nextflow in particular, which is available [here](preparatory_material.md). Please read it before the workshop starts.
+
 
 
 ## What could you after following the workshop?

@@ -57,7 +57,7 @@ We will install Ubuntu *via* the Microsoft Store.
 2. Install the necessary software dependencies by using the following command	
 
 	```
-	sudo apt install git build-essential autoconf automake libtool default-jdk curl
+	sudo apt install git build-essential autoconf automake libtool default-jdk curl nano
 	```
 
 	Again, this step may take several minutes depending on your PC performance and internet connection

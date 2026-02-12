@@ -1,92 +1,93 @@
-### SETUP (teacher)
-
-- Open a terminal with the "Teaching" profile
-- run `unalias ls`
-- remove `results` and `work` directory, and all the `.nextflow` files
+# Chapter 1: Getting started
 
 
-### SETUP (students)
+## What we'll do during the workshop
 
-- clone the repo
-- install Java and NF
-- watch a video/read some material
+We are going to run a simple “genomic” analysis pipeline to process phage samples. Specifically, we will develop a four-step workflow that takes phage genomes in FASTA format as input (three in our case study) and:
 
+- counts the number of sequences;
+- counts how many sequences are shorter a given length;
+- filters out sequences shorter than a given length; and
+- generates a short report
 
-# Genomic analysis, the old way
+This case study will help us introduce three core NF components: processes, channels, and workflows.
+We will not cover module or containers, and we will not take advantage of nf-core resources. 
 
+Things may start to feel complex fairly quickly. NF is famous for having an incredibly steep learning curve, but the cognitive effort is well worth it. Mastering these concepts can beincredibly useful in your professional life.
 
-## What we're going to do
+Please try to follow along, and interrupt me whenever something is unclear. We will build the workflow step by step, so it’s important that everyone stays with me. 
 
-We are going to run a simple “genomic” analysis pipeline. Using three phage genomes in FASTA format, we will:
+f at any point you feel lost (or just a bit shy about asking questions) don’t worry. The material is divided into four chapters, each with a corresponding NF script. We will begin together with `Hello-process.nf` and progressively work our way to `Hello-workshop.nf`.
 
-- Count the number of sequences in a fasta file
-- Count the number of sequences shorter a given length
-- Filter out sequences shorter than a given length
-- Generate a small report
+The workshop is designed as a live coding session. Please, follow along by watching my terminal and coding with me. You don't need to take notes: each chapter s available as a markdown file that you can review later.
 
-This will allow me to introduce the main NF concepts: processes, channels, workflows, and modules.
-We won’t cover containers, and we may or may not take advantage of nf-core resources, depending on the time available.
+Let's start!
 
-Things will get complicated soon enough, NF is famous for having an incredibly steep learning curve, but that's a (cognitive) effort well spent. It may become incredibly useful in your professional life.
+## Traditional approach
 
-Please try to follow along. Interrupt me as soon as you get lost, since we’ll be building the workflow one step at a time.
+In the preparatory material, I mentioned that workflows have been traditionally assembled using general-purpose scripting or programming languages. I've also pointed out that managing how tools interact, and ensuring that each step runs in the correct order with the appropriate inputs and outputs, can quickly become complex.
 
-If you’re really lost and/or a bit shy, don’t worry. I’ve divided the material into FIXME chapters, each accompanied by a corresponding NF script. We’ll start together from `Hello-basic.nf` and progressively move to `FIXME.nf`. At the start of each chapter, you can always switch to the corresponding script, for instance if the script you're working on is completely broken and you can't fix it.
+You don’t have to take my word for it. Let’s explore this together.
 
-I agree, it seems very complicated. Again, don’t worry—I’ll explain everything during the workshop.
+Let’s return to our genomic pipeline and implement it using a “traditional” approach.
 
-
-## How one does this **without** an orchestration manager
-
-Let's go back to our task (the genomic pipeline) and see how we would approach it without a workshop orchestrator, such as NF.
-
-To do so, let's first look at the structure of the Github repo I've asked you to clone.
+Let’s examine the structure of the GitHub repository I asked you to clone 
 
 ```
-cd /Users/visconti/Documents/Teaching/undergrads/Nextflow/
+cd /Users/visconti/Nextflow/
 ls
 ```
 
-You’ll see several folders. One of them is data, which contains the phage genomes we’ll be working with.
+This is the path I asked you to kept it in a safe place.
+
+You’ll see several folders. One of them is 'tutorials` which contains a transcription that closely follows what I’m saying in the live coding session. We are now at Chapter 1 *"Getting Started"*.
+
+```
+ls tutorials
+````
+
+Another folder is `data`, which contains the phage genomes we’ll be working with:
 
 ```
 ls data
 ````
 
-I didn’t make up their names—they really are called like this:
+I didn’t make up their names: they really are called Frank, Hari and Jackrabbit!
 
 ```
-cat data/README.txt
+cat data/README.md
 ```
 
-Let’s take a look at what one of these genomes looks like. Since the file is compressed, we first need to decompress it.
+Let’s take a look at what one of these genomes looks like. Since the file is compressed, we first need to decompress it:
 
 ```
 zcat < data/Frank.fasta.gz | head
 ```
 
-I'm using the input redirection operator (<>) because zcat won't work on MacOS without it. Linux users can simply type `zcat filename`.
-This is a very long file, so I’m piping the output to the `head` command to display only the first 10 lines.
+I'm using the input redirection operator (`<`) because `zcat` will not work on macOS (my operatying system) without it. Linux users can omit it.
 
-You may notice that each sequence in a FASTA file starts with a single-line header (beginning with the ">" character), followed by the sequence data on subsequent lines.
+The file is quite long (we will see in a moment it is has more than 480k sequences), so I’m piping the output to the `head` command to display only the first 10 lines.
+
+You may notice that, in a FASTA file, each sequence begins with a single-line header starting with the `>` character, followed by the sequence data on subsequent lines.
 
 How can we use this information to count the number of sequences in the file?
 
-Since each sequence has its own header, and all headers start with ">", we could count the number of lines that begin with this character. To do this, we decompress the file, extract lines starting with > using the bash command `grep`, and then count them. The "^" symbol indicates “start of line”.
-
+Since each sequence has its own header, and all headers start with `>`, we can count the number of lines that begin with this character. To do so, we decompress the file, extract lines starting with `>` using the  `grep` bash command, and then count them using the `wc -l` bash command. 
 
 ```
 zcat < data/Frank.fasta.gz | grep '^>' | wc -l 
 ```
 
-We can polish this a bit by assigning the result to a Bash variable and printing a more readable message:
+The `^` symbol indicates “start of line”.
+
+We can improve this by assigning the result to a Bash variable and printing a readable message:
 
 ```
 n=$(zcat < data/Frank.fasta.gz | grep '^>' | wc -l)
 echo "The number of reads in data/Frank.fasta.gz is" $n 
 ```
 
-You may notice that the input filename is hard-coded. We can improve this by using another variable:
+You may have noticed that the input filename is hard-coded. We can make our analysis more flexible by assigning it to another variable:
 
 ```
 infile=data/Frank.fasta.gz
@@ -94,8 +95,7 @@ n=$(zcat < $infile | grep '^>' | wc -l)
 echo "The number of reads in" $infile "is" $n 
 ```
 
-Please note that the value of a Bash variable is accessed using the $ sign.
-This adds flexibility, which will be very useful later on.
+Note that the value of a Bash variable is accessed using the `$` sign.
 
 Now let’s redirect the output to a file:
 
@@ -106,32 +106,36 @@ cat total_sequences.txt
 
 We’ve now completed the first step of our pipeline!
 
-To move on to the second step (counting all sequences shorter than a given length) we’ll use a Bash script that I’ve already prepared for you.
+To proceed to the second step (counting all sequences shorter than a given length), we’ll use a Bash script that I’ve already written for you.
 
-If we list the contents of the cloned GitHub repository again, you’ll see a bin folder containing several Bash scripts.
+If we list the contents of the cloned GitHub repository again, we’ll see a `bin` folder containing several Bash scripts:
 
 ```
+ls 
 ls bin
 ```
 
-We won’t go into the details of these scripts, as they’re out of scope for this tutorial. However, I want to show you one of them so you understand how it works.
+We won’t go into the details of these scripts, as they’re beyond scope of this workshop. However, I'd like to show you one of them, so you understand how it works.
 
 ```
 cat bin/count_short_sequences.sh
 ``` 
 
-The script starts with a short description explaining what it does and which parameters it expects:
+The script begins with a short description explaining what it does and which parameters it expects:
 
 ```
-It counts the number reads shorter than a given length x in a compressed FASTA file and write the results on a output file
-$1 (the first parameter) is the compressed input file
-$2 (the second parameter) is the minimum length x
+Count the number of sequences shorter than a given length (x) in
+a compressed FASTA file
+
+Arguments:
+  $1  compressed input FASTA file
+  $2  minimum length (x)
 ````
 
 The body of the script then:
-- Decompresses the genome
-- Uses awk to compute the length of each sequence and filter those shorter than x
-- Prints a short summary
+- decompresses the genome;
+- uses `awk` to compute the length of each sequence and filter those shorter than a given length `x`; and 
+- prints a short summary.
 
 Let’s try it out:
 
@@ -149,25 +153,26 @@ cat filtered_sequences.txt
 
 We’ve now completed the second step of our pipeline!
 
-To perform the third step (removing the identified short sequences and producing a new compressed FASTA file), I've provided you with a second bash script.
+To perform the third step (removing the identified short sequences and producing a new compressed FASTA file), I've provided you with a second bash script:
 
 
 ```
-ls bin
 cat bin/remove_short_sequences.sh
 ```
 
-The arguments are again the compressed input file and the minimum length x, but this time there is a third argument specifying the output file.
+The arguments are again the compressed input file and the minimum length `x`, but this time there is a third argument specifying the output file.
 
 So, let's define a new bash variable for the output file, and run our script:
 
-``
+```
 outfile=data/Frank_filtered.fastq.gz
 bash bin/remove_short_sequences.sh $infile 100 $outfile
 ls data/
 ```
 
-The final step is to create a simple report by concatenating the files containing the total number of reads and the number of reads that survived the filtering step:
+Our filtered genome is here!
+
+The final step is to create a simple report by concatenating the files containing the total number of reads with the file containing the number of reads that survived the filtering step:
 
 
 ```
@@ -176,18 +181,18 @@ ls data
 cat data/Frank_report.txt
 ```
 
-In the bin folder, there is also a script that executes the entire pipeline we’ve described so far:
+In the `bin` folder, there is also a script that executes the entire pipeline we’ve described so far:
 
 ```
 ls bin
 cat bin/bash_pipeline.sh
 ```
 
-If we run it, it will process the genome of the Bacillus phage Frank.
-But what if we wanted to process the Bacillus phage Hari instead?
+If we run it, it will process the genome of the *Bacillus* phage Frank.
+But what if we wanted to process the *Bacillus* phage Hari instead?
 
-We could manually change the value of the input variable and re-run everything—but there must be a better way. And this is exactly where NF shines.
+We could manually change the input and output variable and re-run everything. This operation is quite error prone. Let's do it the "proper' way by using a workflow manager. 
 
-So let’s move on to the first chapter: Hello, process!
+Lset’s move on to the second chapter: Hello, process!
 
 

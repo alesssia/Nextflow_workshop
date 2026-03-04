@@ -65,7 +65,7 @@ Installation instructions depend on your operating system:
   You will need to install Nextflow via *Windows Subsystem for Linux (WSL)*. To this end, I have created a dedicated installation guide, available [here](window_install.md)
   This guide is a simplified version of the instructions provided by the Nextflow developers at Seqera. Their full, detailed documentation is available at::
   [https://seqera.io/blog/setup-nextflow-on-windows/](https://seqera.io/blog/setup-nextflow-on-windows/)
-  If you choose to follow this document, you do not need to install all the software listed there for the workshop, but only the components outlined in the high-level steps below:
+  If you choose to follow the Seqera's document, you do not need to install all the software listed there for the workshop, but only the components outlined in the high-level steps below:
   	1. Install Windows PowerShell
 	2. Configure the Windows Subsystem for Linux (WSL2)
 	3. Obtain and Install a Linux distribution (on WSL2). 
@@ -75,7 +75,7 @@ Installation instructions depend on your operating system:
   	4. Installing Nextflow (up to and including step 4)
 
 
-**If you get stuck, please contact me at alessia.visconti@gmail.com to get assistance before the workshop starts.**
+**If you get stuck, please contact me at alessia.visconti@unito.it to get assistance before the workshop starts.**
 
 ### 2. Clone this repository
 
@@ -101,7 +101,7 @@ Installation instructions depend on your operating system:
 
 -  Please write down this path and keep it in a safe place: we will need it during the workshop.
 
-**Windows users**: This should be done *via* the Bash prompt. To access it, reopen the Windows Start Menu. In the search bar, type `Ubuntu`. Select `Ubuntu 22.04.06 LTS` or `Ubuntu 24.04.01 LTS`.
+**Windows users**: This should be done *via* the Bash prompt. To access it, reopen the Windows Start Menu. In the search bar, type `Ubuntu`. Select `Ubuntu 20.04.06 LTS`, `Ubuntu 22.04.06 LTS` or `Ubuntu 24.04.01 LTS`.
 
 
 ### 3. Read the preparatory material
@@ -110,7 +110,7 @@ Installation instructions depend on your operating system:
 
 
 
-## What could you after following the workshop?
+## What could you do after following the workshop?
 
 If you became interested in Nextflow during this workshop, I highly recommend exploring the excellent training materials developed by [Seqera](https://seqera.io/). They are available at:
 [https://training.nextflow.io/](https://training.nextflow.io/)

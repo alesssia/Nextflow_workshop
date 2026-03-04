@@ -96,7 +96,7 @@ nextflow run pipelines/hello-process.nf
 Using `view()`, NF prints the contents of a channel to the console. Again, this is very useful for debugging.
 
 Let me stress one important peculiarity of NF. As we’ve seen, NF takes care of parallelisation, but it does not process files in the order in which they are provided. In this example, we will expect `Frank`, `Hari`, and `JackRabbit`, but NF may process them in any order.
-Never rely on the input order being preserved.
+Never rely on the input (nor the output) order being preserved.
 
 Now let’s go back and check the results of the execution. What do we expect?
 Since NF ran three tasks, we would expect three output files. Let’s check:

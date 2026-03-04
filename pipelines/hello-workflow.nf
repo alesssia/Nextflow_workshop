@@ -8,23 +8,23 @@
 process countSequences {
 	
 	publishDir 'results', mode: 'copy'
-		
+	
 	input:
-		path infile
+		tuple val(simpleName), path(infile)
 
 	// List of files that should be created by "script" (below)
 	output:
-		path 'total_sequences.txt' // path indicates this is a file 
+		path "total_sequences_${simpleName}.txt" // path indicates this is a file 
 
 	// Code (bash script) that is executed in the compute environment
 	script:
 	"""
 	n=\$(zcat < $infile | grep '^>' | wc -l)
-	echo "The number of reads in" $infile  "is" \$n > total_sequences.txt
+	echo "The number of reads in" $infile  "is" \$n > total_sequences_${simpleName}.txt
 	"""
 }
 
-/*
+/**
 process countShortSequences {
 	
 	publishDir 'results', mode: 'copy'
@@ -43,7 +43,7 @@ process countShortSequences {
 }
 */
 
-/*
+/**
 process removeShortSequences {
 
 	input:
@@ -61,7 +61,7 @@ process removeShortSequences {
 }
 */
 
-/*
+/**
 process crateLog {
 
 	input:
@@ -70,7 +70,7 @@ process crateLog {
 
 	script:
 	"""
-	cat total_sequences.txt filtered_sequences.txt > $reportfile
+	cat total_sequences.txt filtered_sequences.txt > file.log
 	"""
 }
 */
@@ -84,7 +84,7 @@ process crateLog {
 workflow {
 	
 	//This is an input channel
-	input_ch = channel.fromPath("data/*.fasta.gz")
+	input_ch = channel.fromPath("data/**.fasta.gz")
 			  .map { file -> [file.simpleName, file] }
 
 	countSequences(input_ch)

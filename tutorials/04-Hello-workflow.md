@@ -12,6 +12,20 @@ nano pipelines/hello-workflow.nf
 
 We can see that it includes the four steps we described, each isolated in its own process. Some of them are commented out, and the input and output declarations for all of them are currently empty.
 
+In NF, multiline comments (such as those wrapping the bodies of our processes) are written as:
+
+```
+/**
+	[something]
+*/
+```
+
+whereas single-line comments (such those within the workflow body) are written as:
+
+```
+//	[something]
+```
+
 In the body of each script, I’ve reported the Bash commands we saw at the start of the lesson, when we were still processing the files directly from the shell. These scripts are all located in the `bin` folder of this repository.
 
 Clearly, there’s a lot of work to do—so let’s get started.
@@ -19,7 +33,7 @@ Clearly, there’s a lot of work to do—so let’s get started.
 Let’s think about our pipeline.
 We have three independent steps, each of which takes the original input files as input: `countSequences`, `countShortSequences`, and `removeShortSequences`. We’ve already addressed the first one, so let’s move on to the second.
 
-The first thing to do is to specify the input of `countShortSequences` in the workflow declaration, documenting it:
+The first thing to do is to specify the input of `countShortSequences`, which is the same of `countSequences` in the workflow declaration, decommenting it (we also need to decomment the corresponding process):
 
 ```
 nano pipelines/hello-workflow.nf
@@ -29,7 +43,7 @@ nano pipelines/hello-workflow.nf
 countShortSequences(input_ch)
 ```
 
-and edit the input and output in the corresponding process. Since it has the same input as `countSequences`, we can copy it from there:
+and edit the input in the corresponding process. Since it has the same input as `countSequences`, we can copy it from there:
 
 ```
 input:
@@ -59,17 +73,44 @@ output:
 Hopefully this is enough, and our script is ready to run:
 
 ```
-nextflow run pipelines/hello-workflow.nf
+nextflow run pipelines/hello-workflow.nf -resume -ansi-log false
 ```
 
-Let’s check the output:
+I've added the option `-resume`: with it, processes that have already been executed with the same code, settings, and inputs, and for which the output is still available, will be skipped.  This means NF will only run processes that have changed or that receive new inputs or parameters, or for which the output is not available. 
+
+I’ve also added `-ansi-log false` so that each task is printed on a separate line.
+
+We can see that all tasks from the first process (`countSequences`) are marked as cached. NF has noticed that all process outputs are already available in the respective `work` directories, and that the process code hasn’t changed. Therefore, it only executes the new process (`countShortSequences`)
+
+This works because the `work` directories are intact. If we had cleaned them up with  `nextflow clean` then the cached outputs would no longer be available, and NF would re-run all processes.
+
+Let's try it:
+
+```
+nextflow log
+nextflow clean -before nostalgic_moriondo -f
+nextflow clean nostalgic_moriondo -f
+nextflow log
+
+nextflow run pipelines/hello-workflow.nf -resume -ansi-log false
+```
+
+All processes ran again from scratch!
+
+When is `-resume` useful?
+
+- during pipeline development: we can iterate more quickly, since only the process(es) we’re actively working on will be re-run to test your changes; and 
+- in production: if something goes wrong, we can fix the issue and relaunch the pipeline, which will resume from the point of failure, saving time and computational resources.
+
+
+After this parenthesis on `-resume`, let’s check the output of `countShortSequences`:
 
 ```
 ls results
 cat results/filtered_sequences_Frank.txt
 ```
 
-Thankfully, the expected files are there!
+Thankfully, the expected files are there! 
 
 Let’s move on to the next bit. If we open the NF script again, you’ll notice that the minimum read length is hard-coded in the script. How can we pass it as a parameter instead?
 
@@ -90,7 +131,7 @@ n=\$(zcat < $infile |  awk '/^>/ {if (seqlen) print seqlen; seqlen=0; next} {seq
 echo "The number of reads shorter than" ${min_length}" in" $infile "is" \$n > filtered_sequences_${simpleName}.txt
 ```
 
-Now this process requires two inputs. How do we provide them?
+How do we provide `min_length`?
 
 The most flexible option is to pass the parameter from the command line, using the special `params` variable. In the workflow, we update the process invocation like this:
 
@@ -103,10 +144,11 @@ Note that the input is positional: if in the `input` directive we specify the fi
 Then we can run the pipeline with:
 
 ```
-nextflow run pipelines/hello-workflow.nf --min_length 100
+nextflow run pipelines/hello-workflow.nf --min_length 100 -resume
 ```
 
-We use the double dash (`--`) because this is a script parameter. NF options use a single dash (`-`, do you remember `-before` and `-f` when we ran the clean up?)
+We use the double dash (`--`) because this is a script parameter. NF options use a single dash (`-`, do you remember `-before` and `-f` when we ran the clean up, or `-resume` and `-ansi-log`?)
+
 
 Let’s check the output again:
 
@@ -117,7 +159,7 @@ cat results/filtered_sequences_Frank.txt
 Now let’s try a different minimum length:
 
 ```
-nextflow run pipelines/hello-workflow.nf --min_length 40
+nextflow run pipelines/hello-workflow.nf --min_length 40 -resume
 ```
 
 As expected, the output is different:
@@ -137,7 +179,7 @@ params.min_length = 50
 Now we can run the pipeline without explicitly specifying the parameter:
 
 ```
-nextflow run pipelines/hello-workflow.nf
+nextflow run pipelines/hello-workflow.nf -resume
 cat results/filtered_sequences_Frank.txt
 ```
 
@@ -146,9 +188,10 @@ Now it’s your turn. Try to complete the third step of the pipeline (filter out
 Things to keep in mind while doing this:
 
 - what is my input?
-- is it a single input (e.g. a file), or do I need additional values or parameters?
+- is it a single input (*e.g.*, a file), or do I need additional values or parameters?
 - what is my output?
-- should I publish the output (i.e. make it available once the pipeline completes)?
+- how can I ensure that my output is not overwritten each time the task is executed?
+- should I publish the output (*i.e.*, make it available once the pipeline is completed)?
 
 But also:
 
@@ -156,6 +199,7 @@ But also:
 - which variables are Bash variables?
 - for which variables do I need to escape the dollar sign?
 
+Be careful: unlike before, I did not escape any dollar sign, so you need to check all of them.
 You wouldn’t believe how much time I’ve spent debugging issues caused by confusing NF and Bash variables!
 
 **Solution**
@@ -197,79 +241,45 @@ removeShortSequences(input_ch, params.min_length)
 Let's test it:
 
 ```
-nextflow run pipelines/hello-workflow.nf
+nextflow run pipelines/hello-workflow.nf -resume
 ls results/
 ```
 
 Our filtered FASTA file are here!
 
-We only have a final step left! We need to generate a short report by concatenating the two files outputted by the first and second processes.
+We only have a final step left! We need to generate a short report by concatenating the two files outputted by the first and second processes. To do so, we take advantage of the fact that the output of a process is actually a channel, which we can access as `processName.out`. 
 
-Let’s start by editing the script body of the `createLog()` process. This helps us understand what inputs we need and what we expect as output, including which files should be saved (copied) in the `results` folder:
-
-```
-cat total_sequences.txt filtered_sequences.txt > $reportfile
-```
-
-We need the files created in the first two steps and a name for the output file. 
-So, let’s update it to:
+In the `workflow` block:
 
 ```
-cat $log1 $log2 > "${simpleName}.log"
+countSequences.out.view()
+countShortSequences.out.view()
 ```
 
-`$log1` and `$log2` are the files produced in the first two steps. To keep the output name consistent with the other processes, I've used the name of the *Lactobacillus* phage (stored in `${simpleName}`).
-
-Here, we don’t escape the dollar sign, because these are NF variables.
-
-Now it’s clear what we expect as input: two files and a variable. These elements all belong to the same sample, therefore we can define them as a tuple in the `input` directive:
+let's run:
 
 ```
-input: 
-	tuple val(simpleName), path(log1), path(log2)
+nextflow run pipelines/hello-workflow.nf -resume
 ```
 
-Why did we define two inputs, a tuple and a variable, for the `removeShortSequences()` process? Because the variable, `min_length` was shared across all task executions. Therefore it should not be grouped with the sample-specific information usually stored in tuples.
-
-I prefer to always pass variables before files, but there’s no strict rule about argument order in NF.
-
-The output is now clear: it’s a file that we want to copy, because this log is what we want to read after the computation is complete:
+We got what we expected:
 
 ```
-publishDir 'results', mode: 'copy'
-
-input: 
-	tuple var(simpleName), path(log1), path(log2) 
-
- output:
- 	path "${simpleName}.log"
+/Users/visconti/work/49/0925dda79dc65993365caf1c7b823c/filtered_sequences_JackRabbit.txt
+/Users/visconti/work/f5/386147a3435a45661c9cd349c85b08/total_sequences_JackRabbit.txt
+/Users/visconti/work/7a/0745ae652623e865b92a5f4d46e434/total_sequences_Hari.txt
+/Users/visconti/work/b5/8905b0fb756048da14814d0a82ef29/total_sequences_Frank.txt
+/Users/visconti/work/3c/6d4a290a6c5abb21121530aede84c6/filtered_sequences_Hari.txt
+/Users/visconti/work/53/537321691295dcb0f512eda67f33dc/filtered_sequences_Frank.txt```
 ```
 
-How do we build and pass this tuple as input to the `createLog` process?
-
-We take advantage of the fact that the output of a process is actually a channel, which we can access as `processName.out`.
-
-Here, we want to combine `countSequences.out` and `countShortSequences.out`, making sure that the two files from `Frank` are paired together, the two from `Hari` are paired together, and so on.
+Here, we want to concatenate `countSequences.out` and `countShortSequences.out`, making sure that the two files from `Frank` are paired together, the two from `Hari` are paired together, and so on.
 
 NF provides the `combine()` operator for this. If we went to the NF manual, we would read that:
 
 > *“The combine operator produces the combinations (i.e., cross product, ‘Cartesian’ product) of two source channels. The `by` option can be used to combine items that share a matching key.”*
 
-This is exactly what we need—we just need a matching key. In our case, the matching key is the *Lactobacillus* name (stored in `$simpleName`), which is also the variable we want in input. Win win!
-
-Let's now create this combined channel in the `workflow` block, and then work backward to set up everything else we need in the other processes:
-
-```
-log_ch = countSequences.out.combine(countShortSequences.out, by: 0)
-								   .view()
-```
-
-Here, `by: 0` tells NF that the matching key is in position 0 of the tuple (NF counts from 0, like Python, if you're familiar with it).
-
-I've also added a `.view()` operator to inspect the channel before running the pipeline to make sure the combination is correct.
-
-
-We only miss the matching key from the first two processes. Remember it needs to be in position 0  of an output tuples
+This is exactly what we need, we only miss the matching key. In our case, the matching key is the *Lactobacillus* name (stored in `$simpleName`).
 
 In `countSequences()` we edit output as:
 
@@ -287,24 +297,14 @@ output:
 	tuple val(simpleName), path("filtered_sequences_${simpleName}.txt" )	 
 ```
 
-Before testing the `log_ch`, let's add a `view()` operator to see if the first two processes return what we expect:
+Let's see if the first two processes return what we expect:
+
 
 ```
-countSequences.out.view()
-countShortSequences.out.view()
-
-
-//log_ch = countSequences.out.combine(countShortSequences.out, by: 0)
-//								   .view()
+nextflow run pipelines/hello-workflow.nf -resume
 ```
 
-let's run:
-
-```
-nextflow run pipelines/hello-workflow.nf
-```
-
-We got what we expected:
+which outputs:
 
 ```
 [Hari, /Users/visconti/Nextflow/work/39/b91a08c54dc0a4c3732932cd44250f/filtered_sequences_Hari.txt]
@@ -319,11 +319,21 @@ Now both channels have the matching key in position 0. Let’s see if the `combi
 
 ```
 log_ch = countSequences.out.combine(countShortSequences.out, by: 0)
-   						   .view()
+								   .view()
+```
+
+Here, `by: 0` tells NF that the matching key is in position 0 of the tuple (NF counts from 0, like Python, if you're familiar with it).
+
+I've also added a `.view()` operator to inspect the channel before running the pipeline to make sure the combination is correct.
+
+
+Let's run:
+
+```
+nextflow run pipelines/hello-workflow.nf -resume
 ```
 
 That’s exactly what we wanted:
-
 
 ```
 [JackRabbit, /Users/visconti/Nextflow/work/39/04b6ae96cc763db701b5bd908e891a/total_sequences_JackRabbit.txt, /Users/visconti/Nextflow/work/c5/c4163d880c8c46826e22102a1a8bca/filtered_sequences_Frank.txt]
@@ -339,10 +349,41 @@ log_ch = countSequences.out.combine(countShortSequences.out, by: 0)
 crateLog(log_ch)
 ```
 
+Now that we have set up the input channel, let's move to the actual process, `createLog()`.
+
+It’s clear what we expect as input: two files and a variable. These elements all belong to the same sample, therefore we can define them as a tuple in the `input` directive:
+
+```
+input: 
+	tuple val(simpleName), path(log1), path(log2)
+```
+
+Let’s now edit the script body:
+
+```
+cat $log1 $log2 > "${simpleName}.log"
+```
+
+`$log1` and `$log2` are the files produced in the first two steps. To keep the output name consistent with the other processes, I've used the name of the *Lactobacillus* phage (stored in `${simpleName}`).
+
+Here, we don’t escape the dollar sign, because these are NF variables.
+
+The output is now clear: it’s a file that we want to copy, because this log is what we want to read after the computation is complete, we also add the `publishDir` directive:
+
+```
+publishDir 'results', mode: 'copy'
+
+input: 
+	tuple var(simpleName), path(log1), path(log2) 
+
+ output:
+ 	path "${simpleName}.log"
+```
+
 Finally, let's run the pipeline and check the results:
 
 ```
-nextflow run pipelines/hello-workflow.nf
+nextflow run pipelines/hello-workflow.nf -resume
 ls results/
 cat results/Frank.log
 ```
@@ -362,56 +403,12 @@ rm results/*.*
 We are ready to test the workflow execution:
 
 ```
-nextflow run pipelines/hello-workflow.nf
+nextflow run pipelines/hello-workflow.nf -resume
 ls results/
 ```
 
 Success! We have developed our first NF pipeline!
 
-Suppose that now we accidentally delete a file we still need:
-
-```
-rm results/Frank.log
-```
-
-Oh no! Do we need to re-run everything? Actually, no. We can use the NF option `-resume`.
-
-With `-resume`, processes that have already been executed with the same code, settings, and inputs, and for which the output is still available, will be skipped.  This means NF will only run processes that have changed or that receive new inputs or parameters, or for which the output is not available. 
-
-Let’s try it:
-
-```
-nextflow run pipelines/hello-workflow.nf -resume -ansi-log false
-```
-
-Here, I’ve also added `-ansi-log false` so that each task is printed on a separate line.
-
-Quick reminder about dashes:
-
-- we use a single dash (`-`) for NF options like `resume` and `ansi-log`; and
-- we use a double dash (`--`). For process parameters passed to out pipeline (such as `--min_length` earlier).
-
-We can see that all process are marked as cached. NF noticed that all process outputs are already available in the respective `work` directories, and that the process code hasn’t changed. Therefore, it only executes the missing `publishDir` directive for the `Frank.log` file we deleted.
-
-This works because the `work` directories are intact. If we had cleaned them up with  `nextflow clean` then the cached outputs would no longer be available, and NF would re-run all processes.
-
-Let's try it:
-
-```
-nextflow log
-nextflow clean -before nostalgic_moriondo -f
-nextflow clean nostalgic_moriondo -f
-nextflow log
-
-nextflow run pipelines/hello-workflow.nf -resume -ansi-log false
-```
-
-All processes ran again from scratch!
-
-When is `-resume` useful?
-
-- during pipeline development: we can iterate more quickly, since only the process(es) we’re actively working on will be re-run to test your changes; and 
-- in production: if something goes wrong, we can fix the issue and relaunch the pipeline, which will resume from the point of failure, saving time and computational resources.
 
 We have now covered all the material for this workshop.
 

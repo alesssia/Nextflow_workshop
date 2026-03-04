@@ -135,12 +135,18 @@ add a directive above input
 
 This command tells NF to copy the output file to a directory called `results`. If the directory does not exist, NF will create it automatically.
 
+You can check we don't have a directory called `results` (we deleted it at the end of the previous chapter):
+
+```
+ls -d */
+```
+
 Let’s run the workflow again:
 
 ```
 nextflow run pipelines/hello-process.nf
 
-ls 
+ls -d */
 ls results
 cat results/total_sequences.txt
 ```
@@ -157,7 +163,7 @@ This command displays a list of all workflow runs, along with their (randomly ge
 
 Remember that each time we re-run a workflow, it generates a new (randomly-generated) name and a new (randomly-generated) hash, creating a different `work` subfolder. 
 
-Let’s run it again:
+Let’s run it again to check this:
 
 ```
 nextflow run pipelines/hello-process.nf
@@ -173,12 +179,12 @@ Let’s now take a look at the contents of the `work` subfolders:
 
 ```
 ls -R work/
+nextflow log
 ```
 
 If we want to remove all files generated during a specific workflow run, we can copy its name and use the following command:
 
 ```
-nextflow log
 nextflow clean reverent_neumann -f [select the first]
 nextflow log
 ```
@@ -193,7 +199,7 @@ nextflow log
 Let's remove all of them:
 
 ```
-nextflow clean adoring_brenner -f 
+nextflow clean agitated_hawking -f 
 nextflow log
 ```
 

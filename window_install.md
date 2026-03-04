@@ -33,7 +33,7 @@ We will install Ubuntu *via* the Microsoft Store.
 
 1. Open the Windows Start Menu (four blue squares in the bottom-left corner of your screen), or press the Windows key on your keyboard and search “store”. Open the Microsoft Store. 
 
-2. In the Microsoft Store search bar, type `wsl ubuntu`, and select the `Ubuntu 22.04.06 LTS` option (if not available, select `Ubuntu 20.04.06 LTS`)
+2. In the Microsoft Store search bar, type `wsl ubuntu`, and select the `Ubuntu 24.04.01 LTS` option (if not available, select `Ubuntu 20.04.06 LTS` or `Ubuntu 22.04.06 LTS`)
     - If prompted with a pop-up asking whether you want to make changes to your device, select `Yes`
     - The installation may take several minutes depending on your PC performance and internet connection
 
@@ -42,6 +42,28 @@ We will install Ubuntu *via* the Microsoft Store.
 4. After restarting, reopen the Windows Start Menu. In the search bar, type `Ubuntu`. Select `Ubuntu 22.04.06 LTS` or `Ubuntu 24.04.01 LTS` to open the bash prompt
 	- The first time Ubuntu starts, you will be prompted to create a UNIX username and password.
 	- The username that you select can be different from your Windows username. 
+
+
+#### Troubleshooting
+
+If you encounter the error:
+
+```
+0x8007019e The Windows Subsystem for Linux has not been enabled
+```
+
+1. Open PowerShell as Administrator by opening the Start menu, typing "Windows PowerShell" (Windows 10) or "Windows Terminal" (Windows 11), right-clicking on Windows PowerShell/Terminal, and then selecting "Run as administrator"
+
+2. Run:
+
+	```
+	wsl --install
+	```
+	
+3. Restart your computer
+
+If this does not work, please check [this tutorial](https://www.reddit.com/r/Winsides/comments/1ilg7uk/fix_error_0x8007019e_the_windows_subsystem_for/).  
+
 
 
 ## 2. Update Ubuntu and install some piece of software within WSL 2
@@ -57,7 +79,7 @@ We will install Ubuntu *via* the Microsoft Store.
 2. Install the necessary software dependencies by using the following command	
 
 	```
-	sudo apt install git build-essential autoconf automake libtool default-jdk curl nano
+	sudo apt install git build-essential autoconf automake libtool openjdk-17-jdk curl nano
 	```
 
 	Again, this step may take several minutes depending on your PC performance and internet connection
@@ -84,6 +106,15 @@ We will install Ubuntu *via* the Microsoft Store.
 	$ curl
 	curl: try 'curl --help' or 'curl --manual' for more information
 	```
+
+#### Troubleshooting
+
+If Java is installed with a version earlier than 17, please update it using the following command:	
+
+```
+sudo apt install -y openjdk-17-jdk
+```
+	
 
 ## 3. Install Nextflow within WSL 2
 

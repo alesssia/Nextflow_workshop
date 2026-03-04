@@ -97,11 +97,12 @@ echo "The number of reads in" $infile "is" $n
 
 Note that the value of a Bash variable is accessed using the `$` sign.
 
-Now let’s redirect the output to a file:
+Now let’s redirect the output to a file, which will be stored in a dedicated `results` folder:
 
 ```
-echo "The number of reads in" $infile "is" $n > total_sequences.txt
-cat total_sequences.txt
+mkdir results
+echo "The number of reads in" $infile "is" $n > results/total_sequences.txt
+cat results/total_sequences.txt
 ```
 
 We’ve now completed the first step of our pipeline!
@@ -144,11 +145,11 @@ bash bin/count_short_sequences.sh $infile 100
 bash bin/count_short_sequences.sh $infile 50
 ```
 
-Once again, let’s redirect the output to a file:
+Once again, let’s redirect the output to a file again stored in the `results` folder:
 
 ```
-bash bin/count_short_sequences.sh $infile 100 > filtered_sequences.txt
-cat filtered_sequences.txt
+bash bin/count_short_sequences.sh $infile 100 > results/filtered_sequences.txt
+cat results/filtered_sequences.txt
 ```
 
 We’ve now completed the second step of our pipeline!
@@ -165,9 +166,9 @@ The arguments are again the compressed input file and the minimum length `x`, bu
 So, let's define a new bash variable for the output file, and run our script:
 
 ```
-outfile=data/Frank_filtered.fastq.gz
+outfile=results/Frank_filtered.fasta.gz
 bash bin/remove_short_sequences.sh $infile 100 $outfile
-ls data/
+ls results/
 ```
 
 Our filtered genome is here!
@@ -176,9 +177,9 @@ The final step is to create a simple report by concatenating the files containin
 
 
 ```
-cat total_sequences.txt filtered_sequences.txt > data/Frank_report.txt
-ls data
-cat data/Frank_report.txt
+cat results/total_sequences.txt results/filtered_sequences.txt > results/Frank.log
+ls results
+cat results/Frank.log
 ```
 
 In the `bin` folder, there is also a script that executes the entire pipeline we’ve described so far:
@@ -191,8 +192,14 @@ cat bin/bash_pipeline.sh
 If we run it, it will process the genome of the *Bacillus* phage Frank.
 But what if we wanted to process the *Bacillus* phage Hari instead?
 
-We could manually change the input and output variable and re-run everything. This operation is quite error prone. Let's do it the "proper' way by using a workflow manager. 
+We could manually change the input and output variable and re-run everything. This operation is quite error prone. Let's do it the "proper' way by using a workflow manager.
 
-Lset’s move on to the second chapter: Hello, process!
+But before, let's remove our `results` folder:
+
+```
+rm -rf results
+```
+
+Let’s move on to the second chapter: Hello, process!
 
 
